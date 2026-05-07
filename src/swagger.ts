@@ -19,7 +19,7 @@ const options: swaggerJsdoc.Options = {
       },
     },
     security: [{ ApiKeyAuth: [] }],
-    servers: [{ url: `http://localhost:${config.port}` }],
+    servers: [{ url: '/' }],
   },
   apis:
     process.env.NODE_ENV === 'production'
