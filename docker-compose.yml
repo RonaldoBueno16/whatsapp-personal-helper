@@ -1,0 +1,13 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    volumes:
+      - wa_session:/app/.wwebjs_auth
+    restart: unless-stopped
+
+volumes:
+  wa_session:

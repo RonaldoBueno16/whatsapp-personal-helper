@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Recurse -Path \"C:\\\\repo\\\\estudos-ia\\\\whatsapp-personal-helper\")",
+      "Bash(Select-Object FullName)",
+      "Bash(npm install *)",
+      "Bash(npx tsc *)"
+    ]
+  }
+}

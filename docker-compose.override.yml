@@ -1,0 +1,9 @@
+services:
+  app:
+    build:
+      target: deps
+    command: npm run dev
+    volumes:
+      - wa_session:/app/.wwebjs_auth
+      - ./src:/app/src
+      - ./tsconfig.json:/app/tsconfig.json
