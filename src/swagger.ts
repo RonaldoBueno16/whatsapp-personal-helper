@@ -11,14 +11,13 @@ const options: swaggerJsdoc.Options = {
     },
     components: {
       securitySchemes: {
-        ApiKeyAuth: {
-          type: 'apiKey',
-          in: 'header',
-          name: 'x-api-key',
+        BearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
         },
       },
     },
-    security: [{ ApiKeyAuth: [] }],
+    security: [{ BearerAuth: [] }],
     servers: [{ url: '/' }],
   },
   apis:
