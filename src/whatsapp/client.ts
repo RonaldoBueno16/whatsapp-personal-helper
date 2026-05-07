@@ -46,10 +46,6 @@ export function initWhatsApp(): void {
   client.on('ready', () => {
     isReady = true;
     console.log('WhatsApp client ready');
-
-    client.getChats().then((chats) =>                                                                               
-      console.log(chats.map((c) => ({ id: c.id._serialized, name: c.name })))                                         
-      ); 
   });
 
   client.on('auth_failure', (msg) => {
@@ -60,6 +56,13 @@ export function initWhatsApp(): void {
   client.on('disconnected', (reason) => {
     isReady = false;
     console.warn('WhatsApp disconnected:', reason);
+    console.log('Attempting to reinitialize WhatsApp...');
+    setTimeout(() => {
+      removeStaleLocks(AUTH_DATA_PATH);
+      client.initialize().catch((err) => {
+        console.error('WhatsApp reinitialization error:', err);
+      });
+    }, 5000);
   });
 
   removeStaleLocks(AUTH_DATA_PATH);
