@@ -4,3 +4,12 @@ dist/
 .wwebjs_auth/
 .wwebjs_cache/
 *.md
+.git
+.gitignore
+.vscode
+.idea
+*.log
+coverage/
+Dockerfile
+docker-compose*.yml
+project.md
