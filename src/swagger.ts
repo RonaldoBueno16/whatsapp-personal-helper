@@ -21,7 +21,10 @@ const options: swaggerJsdoc.Options = {
     security: [{ ApiKeyAuth: [] }],
     servers: [{ url: `http://localhost:${config.port}` }],
   },
-  apis: ['./src/routes/*.ts', './src/server.ts'],
+  apis:
+    process.env.NODE_ENV === 'production'
+      ? ['./dist/routes/*.js', './dist/server.js']
+      : ['./src/routes/*.ts', './src/server.ts'],
 };
 
 export const swaggerSpec = swaggerJsdoc(options);
