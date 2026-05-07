@@ -33,16 +33,23 @@ O fluxo básico:
 ```
 whatsapp-personal-helper/
 ├── src/
-│   ├── server.ts              # Bootstrap do Express
+│   ├── server.ts                  # Bootstrap Express + readiness gate
+│   ├── config.ts                  # Lê e valida env (PORT, API_SECRET)
+│   ├── middleware/
+│   │   └── auth.ts                # Bearer token
 │   ├── whatsapp/
-│   │   └── client.ts          # Singleton do whatsapp-web.js
-│   ├── actions/               # ← um arquivo por ação
+│   │   └── client.ts              # Singleton whatsapp-web.js + flag isReady
+│   ├── actions/                   # ← um arquivo por ação
 │   │   └── sendGroupMessage.ts
 │   ├── routes/
-│   │   └── index.ts           # Registra todas as rotas
-│   └── ai/                    # ← pasta reservada para Claude (vazia por ora)
+│   │   └── index.ts               # Registra todas as rotas
+│   └── ai/                        # ← pasta reservada para Claude (vazia por ora)
 │       └── .gitkeep
-├── .env
+├── Dockerfile                     # Multi-stage: deps → build → runtime
+├── docker-compose.yml             # Serviço app + volume sessão
+├── .dockerignore
+├── .gitignore
+├── .env.example
 ├── package.json
 └── tsconfig.json
 ```
@@ -53,9 +60,28 @@ whatsapp-personal-helper/
 
 ## Endpoints
 
+| Método | Rota | Auth | Descrição |
+|---|---|---|---|
+| GET | `/health` | não | `{ ok: true, whatsappReady: bool }` |
+| POST | `/actions/send-group-message` | Bearer | Envia mensagem em grupo |
+
+### `GET /health`
+
+Retorna o status do serviço. Não exige autenticação.
+
+```json
+{ "ok": true, "whatsappReady": true }
+```
+
 ### `POST /actions/send-group-message`
 
 Envia uma mensagem de texto em um grupo do WhatsApp.
+
+**Headers:**
+```
+Authorization: Bearer <API_SECRET>
+Content-Type: application/json
+```
 
 **Body:**
 ```json
@@ -65,29 +91,11 @@ Envia uma mensagem de texto em um grupo do WhatsApp.
 }
 ```
 
-**Response 200:**
-```json
-{ "ok": true }
-```
-
----
-
-## Como plugar Claude no futuro
-
-Cada Action Handler recebe um contexto e retorna um resultado. Para adicionar IA:
-
-1. Criar `src/ai/claude.ts` com um cliente Anthropic configurado.
-2. No handler desejado, chamar Claude antes de montar a mensagem:
-
-```ts
-// Exemplo futuro em sendGroupMessage.ts
-import { askClaude } from '../ai/claude'
-
-const message = await askClaude(rawInput)
-await whatsappClient.sendMessage(groupId, message)
-```
-
-Nenhuma outra camada precisa mudar.
+**Respostas:**
+- `200` → `{ "ok": true }`
+- `400` → campos inválidos
+- `401` → token ausente ou incorreto
+- `503` → WhatsApp ainda não pronto
 
 ---
 
@@ -104,20 +112,22 @@ Nenhuma outra camada precisa mudar.
 
 ---
 
-## Variáveis de Ambiente (`.env`)
+## Variáveis de Ambiente
+
+Copie `.env.example` e ajuste os valores:
 
 ```env
 PORT=3000
-API_SECRET=seu-token-aqui
+API_SECRET=troque-este-token
 ```
+
+`API_SECRET` é obrigatório — o serviço falha na inicialização se estiver ausente.
 
 ---
 
-## Como rodar
+## Como Rodar
 
 ### Desenvolvimento (hot-reload)
-
-O `docker-compose.override.yml` está incluso e ativa automaticamente hot-reload com bind mount do `src/`:
 
 ```bash
 cp .env.example .env
@@ -150,4 +160,21 @@ curl -X POST http://localhost:3000/actions/send-group-message \
 # { "ok": true }
 ```
 
-> **Dica:** Para obter o `groupId` de um grupo, você pode temporariamente adicionar um log em `src/server.ts` após o `ready` event: `client.getChats().then(chats => console.log(chats.map(c => ({ id: c.id._serialized, name: c.name }))))`
+> **Dica:** Para obter o `groupId` de um grupo, você pode temporariamente adicionar um log em `src/server.ts` após o evento `ready`: `client.getChats().then(chats => console.log(chats.map(c => ({ id: c.id._serialized, name: c.name }))))`
+
+---
+
+## Como Plugar Claude no Futuro
+
+1. Criar `src/ai/claude.ts` com um cliente Anthropic configurado.
+2. Adicionar `ANTHROPIC_API_KEY` no `.env` / `src/config.ts`.
+3. No handler desejado, chamar Claude antes de montar a mensagem:
+
+```ts
+import { askClaude } from '../ai/claude'
+
+const message = await askClaude(rawInput)
+await client.sendMessage(groupId, message)
+```
+
+Nenhuma outra camada precisa mudar.

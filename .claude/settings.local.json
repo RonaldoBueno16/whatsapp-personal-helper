@@ -4,7 +4,8 @@
       "Bash(Get-ChildItem -Recurse -Path \"C:\\\\repo\\\\estudos-ia\\\\whatsapp-personal-helper\")",
       "Bash(Select-Object FullName)",
       "Bash(npm install *)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(Remove-Item *)"
     ]
   }
 }
