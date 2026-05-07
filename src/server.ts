@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import { config } from './config';
@@ -11,6 +11,13 @@ import { swaggerSpec } from './swagger';
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use((err: Error & { status?: number; type?: string }, _req: Request, res: Response, _next: NextFunction) => {
+  if (err.type === 'entity.parse.failed') {
+    res.status(400).json({ error: 'Invalid JSON: ' + err.message });
+    return;
+  }
+  res.status(err.status ?? 500).json({ error: err.message ?? 'internal error' });
+});
 
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.get('/docs.json', (_req, res) => res.json(swaggerSpec));
