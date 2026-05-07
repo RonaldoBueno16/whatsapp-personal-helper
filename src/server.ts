@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import { config } from './config';
 import { authMiddleware } from './middleware/auth';
@@ -8,6 +9,7 @@ import actionsRouter from './routes/index';
 import { swaggerSpec } from './swagger';
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));

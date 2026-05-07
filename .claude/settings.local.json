@@ -5,7 +5,8 @@
       "Bash(Select-Object FullName)",
       "Bash(npm install *)",
       "Bash(npx tsc *)",
-      "Bash(Remove-Item *)"
+      "Bash(Remove-Item *)",
+      "Bash(Select-String -Pattern \"cors\")"
     ]
   }
 }
